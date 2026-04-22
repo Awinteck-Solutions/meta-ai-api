@@ -47,11 +47,22 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            docker pull ${{ secrets.ECR_REGISTRY }}/awinteck-services:meta-ai-api-${{ github.sha }}
-            docker stop meta-ai-api || true
-            docker rm meta-ai-api || true
-            docker run -d -p 5000:5000 \
+            set -e
+            cd "$HOME"
+            mkdir -p "$HOME/envs"
+            ENV_FILE="$HOME/envs/.env.meta-ai-api"
+            if [ ! -f "$ENV_FILE" ]; then
+              echo "Missing $ENV_FILE on the server."
+              echo "Create it once: nano $ENV_FILE (same keys as your local .env), then re-run the workflow."
+              exit 1
+            fi
+            IMAGE="${{ secrets.ECR_REGISTRY }}/awinteck-services:meta-ai-api-${{ github.sha }}"
+            docker pull "$IMAGE"
+            docker stop meta-ai-api 2>/dev/null || true
+            docker rm meta-ai-api 2>/dev/null || true
+            # App listens on PORT (default 3000 inside the image); host 5000 -> container 3000
+            docker run -d -p 5000:3000 \
               --name meta-ai-api \
               --restart always \
-              --env-file envs/.env.meta-ai-api \
-              ${{ secrets.ECR_REGISTRY }}/awinteck-services:meta-ai-api-${{ github.sha }}
+              --env-file "$ENV_FILE" \
+              "$IMAGE"
