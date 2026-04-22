@@ -1,9 +1,9 @@
-name: Deploy whatsapp-ai-api to AWS
+name: Deploy meta-ai-api to AWS
 
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   deploy:
@@ -28,17 +28,17 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t whatsapp-ai-api:${{ github.sha }} .
+          docker build -t meta-ai-api:${{ github.sha }} .
 
       - name: Tag image
         run: |
-          docker tag whatsapp-ai-api:${{ github.sha }} \
-          ${{ secrets.ECR_REGISTRY }}/awinteck-services:whatsapp-ai-api-${{ github.sha }}
+          docker tag meta-ai-api:${{ github.sha }} \
+          ${{ secrets.ECR_REGISTRY }}/awinteck-services:meta-ai-api-${{ github.sha }}
 
       - name: Push image to ECR
         run: |
           docker push \
-          ${{ secrets.ECR_REGISTRY }}/awinteck-services:whatsapp-ai-api-${{ github.sha }}
+          ${{ secrets.ECR_REGISTRY }}/awinteck-services:meta-ai-api-${{ github.sha }}
 
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1
@@ -47,11 +47,11 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            docker pull ${{ secrets.ECR_REGISTRY }}/awinteck-services:whatsapp-ai-api-${{ github.sha }}
-            docker stop whatsapp-ai-api || true
-            docker rm whatsapp-ai-api || true
+            docker pull ${{ secrets.ECR_REGISTRY }}/awinteck-services:meta-ai-api-${{ github.sha }}
+            docker stop meta-ai-api || true
+            docker rm meta-ai-api || true
             docker run -d -p 5000:5000 \
-              --name whatsapp-ai-api \
+              --name meta-ai-api \
               --restart always \
-              --env-file envs/.env.whatsapp-ai-api \
-              ${{ secrets.ECR_REGISTRY }}/awinteck-services:whatsapp-ai-api-${{ github.sha }}
+              --env-file envs/.env.meta-ai-api \
+              ${{ secrets.ECR_REGISTRY }}/awinteck-services:meta-ai-api-${{ github.sha }}
