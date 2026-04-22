@@ -50,7 +50,7 @@ jobs:
             set -e
             cd "$HOME"
             mkdir -p "$HOME/envs"
-            ENV_FILE="$HOME/envs/.env.meta-ai-api"
+            ENV_FILE="$HOME/envs/.env.meta"
             if [ ! -f "$ENV_FILE" ]; then
               echo "Missing $ENV_FILE on the server."
               echo "Create it once: nano $ENV_FILE (same keys as your local .env), then re-run the workflow."
@@ -60,8 +60,7 @@ jobs:
             docker pull "$IMAGE"
             docker stop meta-ai-api 2>/dev/null || true
             docker rm meta-ai-api 2>/dev/null || true
-            # App listens on PORT (default 3000 inside the image); host 5000 -> container 3000
-            docker run -d -p 5000:3000 \
+            docker run -d -p 5000:5000 \
               --name meta-ai-api \
               --restart always \
               --env-file "$ENV_FILE" \
